@@ -2,15 +2,13 @@
  * @Author: Krishen.Soobramoney 
  * @Date: 2020-01-20 03:34:27 
  * @Last Modified by: Krishen.Soobramoney
- * @Last Modified time: 2020-01-20 03:36:18
+ * @Last Modified time: 2020-01-20 03:44:41
  * SPI test using STM32F303CC as Master and Arduino Uno as Slave
  * Using HAL libraries
  */
 
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
 
 /*Structure Declarations*/
 SPI_HandleTypeDef hspi1;
@@ -33,7 +31,6 @@ void SPIx_DisableSlave(void);
 
 /* Private user code ---------------------------------------------------------*/
 
-
 /**
   * @brief  Main program.
   * @param  None
@@ -44,7 +41,6 @@ int main(void)
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
-  
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -55,66 +51,65 @@ int main(void)
        - Low Level Initialization
      */
   HAL_Init();
-  
+
   /* Configure the system clock 72MHz*/
   SystemClock_Config();
-  
+
   /* Initialize all configured peripherals */
   /*##0 Configure the GPIO#######################*/
   MX_GPIO_Init();
   /*##-1- Configure the SPI peripheral #######################################*/
   /* Set the SPI parameters */
   MX_SPI1_Init();
-/*##-2- Start the Full Duplex Communication process ########################*/  
-  /* While the SPI in TransmitReceive process, user can transmit data through 
-     "aTxBuffer" buffer & receive data through "aRxBuffer" */
-  /* Timeout is set to 5S */
-SPIx_EnableSlave();
-  switch(HAL_SPI_TransmitReceive(&hspi1, (uint8_t*)aTxBufferOn, (uint8_t *)aRxBuffer1, BUFFERSIZE1, 5000))
-  {
-    case HAL_OK:
-      
-      break;
 
-    case HAL_TIMEOUT:
-      Error_Handler();
-      break;
-    case HAL_ERROR:
-      /* Call Timeout Handler */
-      Error_Handler();
-      break;
-    default:
-      break;
-  }
-SPIx_DisableSlave();
-
-HAL_Delay(5000);
-
-SPIx_EnableSlave();
-  switch(HAL_SPI_TransmitReceive(&hspi1, (uint8_t*)aTxBufferOff, (uint8_t *)aRxBuffer2, BUFFERSIZE2, 5000))
-  {
-    case HAL_OK:
-      
-      break;
-
-    case HAL_TIMEOUT:
-      Error_Handler();
-      break;
-    case HAL_ERROR:
-      /* Call Timeout Handler */
-      Error_Handler();
-      break;
-    default:
-      break;
-  }
-SPIx_DisableSlave();
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
+    /*##-2- Start the Full Duplex Communication process ########################*/
+    /* While the SPI in TransmitReceive process, user can transmit data through 
+     "aTxBuffer" buffer & receive data through "aRxBuffer" */
+    /* Timeout is set to 5S */
 
-    /* USER CODE BEGIN 3 */
+    SPIx_EnableSlave();
+    switch (HAL_SPI_TransmitReceive(&hspi1, (uint8_t *)aTxBufferOn, (uint8_t *)aRxBuffer1, BUFFERSIZE1, 5000))
+    {
+    case HAL_OK:
+    	HAL_Delay(5000);
+      break;
+
+    case HAL_TIMEOUT:
+      Error_Handler();
+      break;
+    case HAL_ERROR:
+      /* Call Timeout Handler */
+      Error_Handler();
+      break;
+    default:
+      break;
+    }
+    SPIx_DisableSlave();
+
+    //HAL_Delay(5000);
+
+    SPIx_EnableSlave();
+    switch (HAL_SPI_TransmitReceive(&hspi1, (uint8_t *)aTxBufferOff, (uint8_t *)aRxBuffer2, BUFFERSIZE2, 5000))
+    {
+    case HAL_OK:
+    	HAL_Delay(5000);
+      break;
+
+    case HAL_TIMEOUT:
+      Error_Handler();
+      break;
+    case HAL_ERROR:
+      /* Call Timeout Handler */
+      Error_Handler();
+      break;
+    default:
+      break;
+    }
+    SPIx_DisableSlave();
   }
   /* USER CODE END 3 */
 }
@@ -143,8 +138,7 @@ void SystemClock_Config(void)
   }
   /** Initializes the CPU, AHB and APB busses clocks 
   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -167,27 +161,24 @@ void SystemClock_Config(void)
 static void MX_SPI1_Init(void)
 {
   /* SPI1 parameter configuration*/
-  hspi1.Instance                = SPI1;
-  hspi1.Init.Mode               = SPI_MODE_MASTER;
-  hspi1.Init.Direction          = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize           = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity        = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase           = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS                = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler  = SPI_BAUDRATEPRESCALER_128;
-  hspi1.Init.FirstBit           = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode             = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation     = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial      = 7;
-  hspi1.Init.CRCLength          = SPI_CRC_LENGTH_8BIT;
-  hspi1.Init.NSSPMode           = SPI_NSS_PULSE_DISABLE;
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 7;
+  hspi1.Init.CRCLength = SPI_CRC_LENGTH_8BIT;
+  hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
   if (HAL_SPI_Init(&hspi1) != HAL_OK)
   {
     Error_Handler();
   }
-  
-  
-
 }
 
 /**
@@ -220,7 +211,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
 }
 
 /**
@@ -230,7 +220,7 @@ static void MX_GPIO_Init(void)
   */
 static void Error_Handler(void)
 {
-  while(1)
+  while (1)
   {
     /* Toggle LED2 */
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
@@ -245,11 +235,11 @@ static void Error_Handler(void)
   * @retval 0  : pBuffer1 identical to pBuffer2
   *         >0 : pBuffer1 differs from pBuffer2
   */
-static uint16_t Buffercmp(uint8_t* pBuffer1, uint8_t* pBuffer2, uint16_t BufferLength)
+static uint16_t Buffercmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferLength)
 {
   while (BufferLength--)
   {
-    if((*pBuffer1) != *pBuffer2)
+    if ((*pBuffer1) != *pBuffer2)
     {
       return BufferLength;
     }
@@ -262,19 +252,17 @@ static uint16_t Buffercmp(uint8_t* pBuffer1, uint8_t* pBuffer2, uint16_t BufferL
 
 void SPIx_EnableSlave()
 {
-    // Set slave SS pin low
-    SPIx_NSS_GPIO_PORT->BRR = SPIx_NSS;
+  // Set slave SS pin low
+  SPIx_NSS_GPIO_PORT->BRR = SPIx_NSS;
 }
- 
+
 void SPIx_DisableSlave()
 {
-    // Set slave SS pin high
-    SPIx_NSS_GPIO_PORT->BSRR = SPIx_NSS;
+  // Set slave SS pin high
+  SPIx_NSS_GPIO_PORT->BSRR = SPIx_NSS;
 }
 
-
-
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
@@ -283,7 +271,7 @@ void SPIx_DisableSlave()
   * @retval None
   */
 void assert_failed(char *file, uint32_t line)
-{ 
+{
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
