@@ -1,117 +1,65 @@
-/*
- * @Author: Krishen.Soobramoney 
- * @Date: 2020-01-20 03:34:27 
- * @Last Modified by: Krishen.Soobramoney
- * @Last Modified time: 2020-01-20 03:44:41
- * SPI test using STM32F303CC as Master and Arduino Uno as Slave
- * Using HAL libraries
- */
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * All rights reserved.</center></h2>
+  *
+  * This software component is licensed by ST under BSD 3-Clause license,
+  * the "License"; You may not use this file except in compliance with the
+  * License. You may obtain a copy of the License at:
+  *                        opensource.org/licenses/BSD-3-Clause
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-/*Structure Declarations*/
-SPI_HandleTypeDef hspi1;
+#define I2C_Slave_ADDRESS        0x08<<1
 
+/* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c1;
+HAL_StatusTypeDef ret;
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_I2C1_Init(void);
 /* Buffer used for transmission */
 uint8_t aTxBufferOn[] = "1";
 uint8_t aTxBufferOff[] = "0";
 
 /* Buffer used for reception */
-uint8_t aRxBuffer1[BUFFERSIZE1];
-uint8_t aRxBuffer2[BUFFERSIZE2];
-
-/* Private function prototypes -----------------------------------------------*/
-void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_SPI1_Init(void);
-static void Error_Handler(void);
-void SPIx_EnableSlave(void);
-void SPIx_DisableSlave(void);
-
-/* Private user code ---------------------------------------------------------*/
 
 /**
-  * @brief  Main program.
-  * @param  None
-  * @retval None
+  * @brief  The application entry point.
+  * @retval int
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* STM32F3xx HAL library initialization:
-       - Configure the Flash prefetch
-       - Configure the Systick to generate an interrupt each 1 msec
-       - Set NVIC Group Priority to 4
-       - Low Level Initialization
-     */
+  
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* Configure the system clock 72MHz*/
+  /* Configure the system clock */
   SystemClock_Config();
-
   /* Initialize all configured peripherals */
-  /*##0 Configure the GPIO#######################*/
   MX_GPIO_Init();
-  /*##-1- Configure the SPI peripheral #######################################*/
-  /* Set the SPI parameters */
-  MX_SPI1_Init();
+  MX_I2C1_Init();
+ 
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /*##-2- Start the Full Duplex Communication process ########################*/
-    /* While the SPI in TransmitReceive process, user can transmit data through 
-     "aTxBuffer" buffer & receive data through "aRxBuffer" */
-    /* Timeout is set to 5S */
-
-    SPIx_EnableSlave();
-    switch (HAL_SPI_TransmitReceive(&hspi1, (uint8_t *)aTxBufferOn, (uint8_t *)aRxBuffer1, BUFFERSIZE1, 5000))
-    {
-    case HAL_OK:
-    	HAL_Delay(5000);
-      break;
-
-    case HAL_TIMEOUT:
-      Error_Handler();
-      break;
-    case HAL_ERROR:
-      /* Call Timeout Handler */
-      Error_Handler();
-      break;
-    default:
-      break;
-    }
-    SPIx_DisableSlave();
-
-    //HAL_Delay(5000);
-
-    SPIx_EnableSlave();
-    switch (HAL_SPI_TransmitReceive(&hspi1, (uint8_t *)aTxBufferOff, (uint8_t *)aRxBuffer2, BUFFERSIZE2, 5000))
-    {
-    case HAL_OK:
-    	HAL_Delay(5000);
-      break;
-
-    case HAL_TIMEOUT:
-      Error_Handler();
-      break;
-    case HAL_ERROR:
-      /* Call Timeout Handler */
-      Error_Handler();
-      break;
-    default:
-      break;
-    }
-    SPIx_DisableSlave();
-  }
-  /* USER CODE END 3 */
+   while (1)
+   {
+	  HAL_I2C_Master_Transmit(&hi2c1, I2C_Slave_ADDRESS,aTxBufferOn,1, HAL_MAX_DELAY);
+	  HAL_Delay(1000);
+	  HAL_I2C_Master_Transmit(&hi2c1, I2C_Slave_ADDRESS,aTxBufferOff,1, HAL_MAX_DELAY);
+	  HAL_Delay(1000);
+   }
+  
 }
 
 /**
@@ -122,13 +70,15 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Initializes the CPU, AHB and APB busses clocks 
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
@@ -138,7 +88,8 @@ void SystemClock_Config(void)
   }
   /** Initializes the CPU, AHB and APB busses clocks 
   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -148,37 +99,48 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_I2C1;
+  PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /** Enables the Clock Security System 
   */
   HAL_RCC_EnableCSS();
 }
 
 /**
-  * @brief SPI1 Initialization Function
+  * @brief I2C1 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_SPI1_Init(void)
+static void MX_I2C1_Init(void)
 {
-  /* SPI1 parameter configuration*/
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 7;
-  hspi1.Init.CRCLength = SPI_CRC_LENGTH_8BIT;
-  hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
-  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.Timing = 0x2000090E;
+  hi2c1.Init.OwnAddress1 = 0x30F;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0xFF;
+  hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
   {
     Error_Handler();
   }
+  /** Configure Analogue filter 
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
 }
 
 /**
@@ -191,16 +153,9 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOF_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
-
-  /*Configure GPIO pin : PB6 */
-  GPIO_InitStruct.Pin = GPIO_PIN_6;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
@@ -211,58 +166,23 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
 }
+
+/* USER CODE BEGIN 4 */
+
+/* USER CODE END 4 */
 
 /**
   * @brief  This function is executed in case of error occurrence.
-  * @param  None
   * @retval None
   */
-static void Error_Handler(void)
+void Error_Handler(void)
 {
-  while (1)
-  {
-    /* Toggle LED2 */
-    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-    HAL_Delay(1000);
-  }
+  
 }
 
-/**
-  * @brief  Compares two buffers.
-  * @param  pBuffer1, pBuffer2: buffers to be compared.
-  * @param  BufferLength: buffer's length
-  * @retval 0  : pBuffer1 identical to pBuffer2
-  *         >0 : pBuffer1 differs from pBuffer2
-  */
-static uint16_t Buffercmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferLength)
-{
-  while (BufferLength--)
-  {
-    if ((*pBuffer1) != *pBuffer2)
-    {
-      return BufferLength;
-    }
-    pBuffer1++;
-    pBuffer2++;
-  }
-
-  return 0;
-}
-
-void SPIx_EnableSlave()
-{
-  // Set slave SS pin low
-  SPIx_NSS_GPIO_PORT->BRR = SPIx_NSS;
-}
-
-void SPIx_DisableSlave()
-{
-  // Set slave SS pin high
-  SPIx_NSS_GPIO_PORT->BSRR = SPIx_NSS;
-}
-
-#ifdef USE_FULL_ASSERT
+#ifdef  USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
@@ -271,7 +191,7 @@ void SPIx_DisableSlave()
   * @retval None
   */
 void assert_failed(char *file, uint32_t line)
-{
+{ 
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
@@ -279,4 +199,4 @@ void assert_failed(char *file, uint32_t line)
 }
 #endif /* USE_FULL_ASSERT */
 
-/************************ (C) COPYRIGHT Krishen Soobramoney *****END OF FILE****/
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -23,45 +23,44 @@
 #ifndef __MAIN_H
 #define __MAIN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f3xx_hal.h"
 #include "stm32f303xc.h"
 
-#define SPIx SPI1
-#define SPIx_CLK_ENABLE() __HAL_RCC_SPI1_CLK_ENABLE()
-#define SPIx_SCK_GPIO_CLK_ENABLE() __HAL_RCC_GPIOA_CLK_ENABLE()
-#define SPIx_MISO_GPIO_CLK_ENABLE() __HAL_RCC_GPIOA_CLK_ENABLE()
-#define SPIx_MOSI_GPIO_CLK_ENABLE() __HAL_RCC_GPIOA_CLK_ENABLE()
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 
-#define SPIx_FORCE_RESET() __HAL_RCC_SPI1_FORCE_RESET()
-#define SPIx_RELEASE_RESET() __HAL_RCC_SPI1_RELEASE_RESET()
+/* USER CODE END Includes */
 
-/* Definition for SPIx Pins */
-/**SPI1 GPIO Configuration    
-    PA4     ------> SPI1_NSS
-    PA5     ------> SPI1_SCK
-    PA6     ------> SPI1_MISO
-    PA7     ------> SPI1_MOSI 
-    */
-#define SPIx_SCK_PIN GPIO_PIN_5
-#define SPIx_SCK_GPIO_PORT GPIOA
-#define SPIx_SCK_AF GPIO_AF5_SPI1
-#define SPIx_MISO_PIN GPIO_PIN_6
-#define SPIx_MISO_GPIO_PORT GPIOA
-#define SPIx_MISO_AF GPIO_AF5_SPI1
-#define SPIx_MOSI_PIN GPIO_PIN_7
-#define SPIx_MOSI_GPIO_PORT GPIOA
-#define SPIx_MOSI_AF GPIO_AF5_SPI1
-#define SPIx_NSS GPIO_PIN_4
-#define SPIx_NSS_AF GPIO_AF5_SPI1
-#define SPIx_NSS_GPIO_PORT GPIOA
+/* Exported types ------------------------------------------------------------*/
+/* USER CODE BEGIN ET */
 
-/* Size of buffer */
-#define BUFFERSIZE1 (COUNTOF(aTxBufferOn) - 1)
-#define BUFFERSIZE2 (COUNTOF(aTxBufferOff) - 1)
+/* USER CODE END ET */
+
+/* Exported constants --------------------------------------------------------*/
+/* USER CODE BEGIN EC */
+
+/* USER CODE END EC */
+
 /* Exported macro ------------------------------------------------------------*/
-#define COUNTOF(__BUFFER__) (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
-/* Exported functions ------------------------------------------------------- */
+/* USER CODE BEGIN EM */
+
+/* USER CODE END EM */
+
+/* Exported functions prototypes ---------------------------------------------*/
+void Error_Handler(void);
+#define BUFFERSIZE1 				(COUNTOF(aTxBufferOn) - 1)
+#define BUFFERSIZE2 				(COUNTOF(aTxBufferOff) - 1)
+/* Exported macro ------------------------------------------------------------*/
+//#define COUNTOF(__BUFFER__) 		(sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __MAIN_H */
 
-/************************ (C) COPYRIGHT Krishen Soobramoney *****END OF FILE****/
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
